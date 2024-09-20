@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -8,8 +8,7 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import TaskList from '../components/TaskList';
 import { addTask } from '../utils/taskUtils';
-import { GoogleLogin } from '@react-oauth/google';
-import { initializeGoogleAuth, createGoogleCalendarEvent } from '../utils/googleCalendar';
+import { initializeGoogleAuth, signIn, isSignedIn, createGoogleCalendarEvent } from '../utils/googleCalendar';
 
 const Index = () => {
   const [tasks, setTasks] = useState([]);
@@ -17,9 +16,17 @@ const Index = () => {
   const [description, setDescription] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const handleGoogleLogin = (credentialResponse) => {
-    initializeGoogleAuth(credentialResponse.access_token);
-    setIsLoggedIn(true);
+  useEffect(() => {
+    const initGoogle = async () => {
+      await initializeGoogleAuth();
+      setIsLoggedIn(isSignedIn());
+    };
+    initGoogle();
+  }, []);
+
+  const handleGoogleLogin = async () => {
+    const signedIn = await signIn();
+    setIsLoggedIn(signedIn);
   };
 
   const handleAddTask = async () => {
@@ -44,10 +51,7 @@ const Index = () => {
         <h1 className="text-2xl font-bold mb-4">Quick Task Creator</h1>
         {!isLoggedIn ? (
           <div className="mb-4">
-            <GoogleLogin
-              onSuccess={handleGoogleLogin}
-              onError={() => console.log('Login Failed')}
-            />
+            <Button onClick={handleGoogleLogin}>Sign in with Google</Button>
           </div>
         ) : (
           <div className="space-y-4 mb-6">

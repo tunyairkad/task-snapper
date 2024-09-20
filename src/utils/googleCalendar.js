@@ -1,18 +1,44 @@
-import { google } from 'googleapis';
+// Load the Google API Client Library
+function loadGoogleApiClient() {
+  return new Promise((resolve) => {
+    gapi.load('client:auth2', resolve);
+  });
+}
 
-let auth = null;
+// Initialize the Google API Client
+export async function initializeGoogleAuth() {
+  await loadGoogleApiClient();
+  await gapi.client.init({
+    apiKey: 'YOUR_API_KEY',
+    clientId: 'YOUR_CLIENT_ID',
+    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
+    scope: 'https://www.googleapis.com/auth/calendar.events'
+  });
+}
 
-export const initializeGoogleAuth = (token) => {
-  auth = new google.auth.OAuth2();
-  auth.setCredentials({ access_token: token });
-};
-
-export const createGoogleCalendarEvent = async (summary, date) => {
-  if (!auth) {
-    throw new Error('Google Auth not initialized');
+// Sign in the user
+export async function signIn() {
+  try {
+    const googleAuth = gapi.auth2.getAuthInstance();
+    await googleAuth.signIn();
+    return true;
+  } catch (error) {
+    console.error('Error signing in:', error);
+    return false;
   }
+}
 
-  const calendar = google.calendar({ version: 'v3', auth });
+// Check if the user is signed in
+export function isSignedIn() {
+  const googleAuth = gapi.auth2.getAuthInstance();
+  return googleAuth.isSignedIn.get();
+}
+
+// Create a Google Calendar event
+export async function createGoogleCalendarEvent(summary, date) {
+  if (!isSignedIn()) {
+    throw new Error('User is not signed in');
+  }
 
   const event = {
     summary: summary,
@@ -25,13 +51,13 @@ export const createGoogleCalendarEvent = async (summary, date) => {
   };
 
   try {
-    const response = await calendar.events.insert({
+    const response = await gapi.client.calendar.events.insert({
       calendarId: 'primary',
       resource: event,
     });
-    return response.data;
+    return response.result;
   } catch (error) {
     console.error('Error creating Google Calendar event:', error);
     throw error;
   }
-};
+}
