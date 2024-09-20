@@ -1,13 +1,17 @@
 // Load the Google API Client Library
 function loadGoogleApiClient() {
   return new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = 'https://apis.google.com/js/api.js';
-    script.onload = () => {
+    if (typeof gapi !== 'undefined') {
       gapi.load('client:auth2', resolve);
-    };
-    script.onerror = reject;
-    document.body.appendChild(script);
+    } else {
+      const script = document.createElement('script');
+      script.src = 'https://apis.google.com/js/api.js';
+      script.onload = () => {
+        gapi.load('client:auth2', resolve);
+      };
+      script.onerror = (error) => reject(new Error(`Failed to load Google API script: ${error.message}`));
+      document.body.appendChild(script);
+    }
   });
 }
 
@@ -21,9 +25,10 @@ export async function initializeGoogleAuth() {
       discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
       scope: 'https://www.googleapis.com/auth/calendar.events'
     });
+    console.log('Google Auth initialized successfully');
   } catch (error) {
     console.error('Error initializing Google Auth:', error);
-    throw new Error('Failed to initialize Google Auth. Please check your API key and client ID.');
+    throw new Error(`Failed to initialize Google Auth: ${error.message}`);
   }
 }
 
@@ -35,8 +40,10 @@ export async function signIn() {
       prompt: 'select_account'
     });
     if (user) {
+      console.log('User signed in successfully');
       return true;
     }
+    console.log('Sign-in cancelled by user');
     return false;
   } catch (error) {
     console.error('Error signing in:', error);
@@ -45,15 +52,20 @@ export async function signIn() {
     } else if (error.error === "access_denied") {
       throw new Error('Access was denied. Please check your Google account permissions.');
     } else {
-      throw new Error('An error occurred during sign-in. Please try again later.');
+      throw new Error(`An error occurred during sign-in: ${error.message}`);
     }
   }
 }
 
 // Check if the user is signed in
 export function isSignedIn() {
-  const googleAuth = gapi.auth2.getAuthInstance();
-  return googleAuth && googleAuth.isSignedIn.get();
+  try {
+    const googleAuth = gapi.auth2.getAuthInstance();
+    return googleAuth && googleAuth.isSignedIn.get();
+  } catch (error) {
+    console.error('Error checking sign-in status:', error);
+    return false;
+  }
 }
 
 // Create a Google Calendar event
@@ -77,9 +89,10 @@ export async function createGoogleCalendarEvent(summary, date) {
       calendarId: 'primary',
       resource: event,
     });
+    console.log('Event created successfully:', response.result);
     return response.result;
   } catch (error) {
     console.error('Error creating Google Calendar event:', error);
-    throw new Error('Failed to create Google Calendar event. Please try again.');
+    throw new Error(`Failed to create Google Calendar event: ${error.message}`);
   }
 }

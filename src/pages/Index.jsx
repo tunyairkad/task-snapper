@@ -17,21 +17,30 @@ const Index = () => {
   const [description, setDescription] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const initGoogle = async () => {
+      setIsLoading(true);
       try {
         await initializeGoogleAuth();
         setIsLoggedIn(isSignedIn());
+        setIsInitialized(true);
       } catch (error) {
         console.error('Error initializing Google Auth:', error);
-        toast.error('Failed to initialize Google Auth. Please try again later.');
+        toast.error(`Failed to initialize Google Auth: ${error.message}`);
+      } finally {
+        setIsLoading(false);
       }
     };
     initGoogle();
   }, []);
 
   const handleGoogleLogin = async () => {
+    if (!isInitialized) {
+      toast.error('Google Auth is not initialized. Please refresh the page and try again.');
+      return;
+    }
     setIsLoading(true);
     try {
       const signedIn = await signIn();
@@ -43,7 +52,7 @@ const Index = () => {
       }
     } catch (error) {
       console.error('Error signing in:', error);
-      toast.error('An error occurred while signing in. Please check the console for details.');
+      toast.error(`An error occurred while signing in: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -61,7 +70,7 @@ const Index = () => {
         toast.success('Task added successfully to Google Calendar!');
       } catch (error) {
         console.error('Error adding task to Google Calendar:', error);
-        toast.error('Failed to add task to Google Calendar. Please try again.');
+        toast.error(`Failed to add task to Google Calendar: ${error.message}`);
       }
     }
   };
@@ -72,7 +81,7 @@ const Index = () => {
         <h1 className="text-2xl font-bold mb-4">Quick Task Creator</h1>
         {!isLoggedIn ? (
           <div className="mb-4">
-            <Button onClick={handleGoogleLogin} disabled={isLoading}>
+            <Button onClick={handleGoogleLogin} disabled={isLoading || !isInitialized}>
               {isLoading ? 'Signing in...' : 'Sign in with Google'}
             </Button>
           </div>
