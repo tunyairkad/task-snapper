@@ -26,9 +26,11 @@ const Index = () => {
         await initializeGoogleAuth();
         setIsLoggedIn(isSignedIn());
         setIsInitialized(true);
+        toast.success('Google Auth initialized successfully');
       } catch (error) {
         console.error('Error initializing Google Auth:', error);
         toast.error(`Failed to initialize Google Auth: ${error.message}`);
+        setIsInitialized(false);
       } finally {
         setIsLoading(false);
       }
@@ -84,6 +86,11 @@ const Index = () => {
             <Button onClick={handleGoogleLogin} disabled={isLoading || !isInitialized}>
               {isLoading ? 'Signing in...' : 'Sign in with Google'}
             </Button>
+            {!isInitialized && (
+              <p className="text-sm text-red-500 mt-2">
+                Google Auth initialization failed. Please refresh the page and try again.
+              </p>
+            )}
           </div>
         ) : (
           <div className="space-y-4 mb-6">

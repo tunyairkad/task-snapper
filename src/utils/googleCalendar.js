@@ -2,12 +2,18 @@
 function loadGoogleApiClient() {
   return new Promise((resolve, reject) => {
     if (typeof gapi !== 'undefined') {
-      gapi.load('client:auth2', resolve);
+      gapi.load('client:auth2', {
+        callback: resolve,
+        onerror: (error) => reject(new Error(`Failed to load Google API client: ${error.message}`))
+      });
     } else {
       const script = document.createElement('script');
       script.src = 'https://apis.google.com/js/api.js';
       script.onload = () => {
-        gapi.load('client:auth2', resolve);
+        gapi.load('client:auth2', {
+          callback: resolve,
+          onerror: (error) => reject(new Error(`Failed to load Google API client: ${error.message}`))
+        });
       };
       script.onerror = (error) => reject(new Error(`Failed to load Google API script: ${error.message}`));
       document.body.appendChild(script);
@@ -28,7 +34,7 @@ export async function initializeGoogleAuth() {
     console.log('Google Auth initialized successfully');
   } catch (error) {
     console.error('Error initializing Google Auth:', error);
-    throw new Error(`Failed to initialize Google Auth: ${error.message}`);
+    throw new Error(`Failed to initialize Google Auth: ${error.message || 'Unknown error'}`);
   }
 }
 
@@ -52,7 +58,7 @@ export async function signIn() {
     } else if (error.error === "access_denied") {
       throw new Error('Access was denied. Please check your Google account permissions.');
     } else {
-      throw new Error(`An error occurred during sign-in: ${error.message}`);
+      throw new Error(`An error occurred during sign-in: ${error.message || 'Unknown error'}`);
     }
   }
 }
@@ -93,6 +99,6 @@ export async function createGoogleCalendarEvent(summary, date) {
     return response.result;
   } catch (error) {
     console.error('Error creating Google Calendar event:', error);
-    throw new Error(`Failed to create Google Calendar event: ${error.message}`);
+    throw new Error(`Failed to create Google Calendar event: ${error.message || 'Unknown error'}`);
   }
 }
