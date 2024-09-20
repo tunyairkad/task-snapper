@@ -32,6 +32,7 @@ export async function initializeGoogleAuth() {
       scope: 'https://www.googleapis.com/auth/calendar.events'
     });
     console.log('Google Auth initialized successfully');
+    return true;
   } catch (error) {
     console.error('Error initializing Google Auth:', error);
     throw new Error(`Failed to initialize Google Auth: ${error.message || 'Unknown error'}`);
@@ -42,6 +43,9 @@ export async function initializeGoogleAuth() {
 export async function signIn() {
   try {
     const googleAuth = gapi.auth2.getAuthInstance();
+    if (!googleAuth) {
+      throw new Error('Google Auth is not initialized');
+    }
     const user = await googleAuth.signIn({
       prompt: 'select_account'
     });

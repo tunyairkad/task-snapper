@@ -23,10 +23,14 @@ const Index = () => {
     const initGoogle = async () => {
       setIsLoading(true);
       try {
-        await initializeGoogleAuth();
+        const initialized = await initializeGoogleAuth();
         setIsLoggedIn(isSignedIn());
-        setIsInitialized(true);
-        toast.success('Google Auth initialized successfully');
+        setIsInitialized(initialized);
+        if (initialized) {
+          toast.success('Google Auth initialized successfully');
+        } else {
+          toast.error('Failed to initialize Google Auth. Please check your internet connection and try again.');
+        }
       } catch (error) {
         console.error('Error initializing Google Auth:', error);
         toast.error(`Failed to initialize Google Auth: ${error.message}`);
