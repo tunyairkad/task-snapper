@@ -16,8 +16,8 @@ export async function initializeGoogleAuth() {
   try {
     await loadGoogleApiClient();
     await gapi.client.init({
-      apiKey: 'YOUR_API_KEY',
-      clientId: 'YOUR_CLIENT_ID',
+      apiKey: 'AIzaSyBZWW3qtYXGP9RejZrqFYvU3VZP2mtARWg',
+      clientId: '220858364378-d5a5ea06a731vd5f9484ru7hprdr6sdl.apps.googleusercontent.com',
       discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
       scope: 'https://www.googleapis.com/auth/calendar.events'
     });
