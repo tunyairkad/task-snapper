@@ -1,18 +1,29 @@
 // Load the Google API Client Library
 function loadGoogleApiClient() {
-  return new Promise((resolve) => {
-    gapi.load('client:auth2', resolve);
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://apis.google.com/js/api.js';
+    script.onload = () => {
+      gapi.load('client:auth2', resolve);
+    };
+    script.onerror = reject;
+    document.body.appendChild(script);
   });
 }
 
 // Initialize the Google API Client
 export async function initializeGoogleAuth() {
-  await loadGoogleApiClient();
-  await gapi.client.init({
-    clientId: 'YOUR_GOOGLE_CLIENT_ID',
-    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
-    scope: 'https://www.googleapis.com/auth/calendar.events'
-  });
+  try {
+    await loadGoogleApiClient();
+    await gapi.client.init({
+      apiKey: 'YOUR_API_KEY',
+      clientId: 'YOUR_CLIENT_ID',
+      discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
+      scope: 'https://www.googleapis.com/auth/calendar.events'
+    });
+  } catch (error) {
+    console.error('Error initializing Google Auth:', error);
+  }
 }
 
 // Sign in the user
@@ -30,7 +41,7 @@ export async function signIn() {
 // Check if the user is signed in
 export function isSignedIn() {
   const googleAuth = gapi.auth2.getAuthInstance();
-  return googleAuth.isSignedIn.get();
+  return googleAuth && googleAuth.isSignedIn.get();
 }
 
 // Create a Google Calendar event
