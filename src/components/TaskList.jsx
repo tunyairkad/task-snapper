@@ -11,7 +11,7 @@ const TaskList = ({ tasks }) => {
         <ul className="space-y-2">
           {tasks.map((task) => (
             <li key={task.id} className="bg-gray-50 p-3 rounded-md">
-              <p className="font-medium">Task #{task.id}</p>
+              <p className="font-medium">{task.description}</p>
               <p className="text-sm text-gray-600">
                 Due: {format(new Date(task.dueDate), 'PPP')}
               </p>

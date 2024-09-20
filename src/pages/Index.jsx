@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -11,12 +12,14 @@ import { addTask } from '../utils/taskUtils';
 const Index = () => {
   const [tasks, setTasks] = useState([]);
   const [date, setDate] = useState();
+  const [description, setDescription] = useState('');
 
   const handleAddTask = () => {
-    if (date) {
-      const newTask = addTask(date);
+    if (date && description.trim()) {
+      const newTask = addTask(date, description);
       setTasks([...tasks, newTask]);
       setDate(undefined);
+      setDescription('');
     }
   };
 
@@ -24,13 +27,20 @@ const Index = () => {
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
         <h1 className="text-2xl font-bold mb-4">Quick Task Creator</h1>
-        <div className="flex items-center space-x-4 mb-6">
+        <div className="space-y-4 mb-6">
+          <Input
+            type="text"
+            placeholder="Enter task description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full"
+          />
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant={"outline"}
                 className={cn(
-                  "w-[240px] justify-start text-left font-normal",
+                  "w-full justify-start text-left font-normal",
                   !date && "text-muted-foreground"
                 )}
               >
@@ -47,7 +57,9 @@ const Index = () => {
               />
             </PopoverContent>
           </Popover>
-          <Button onClick={handleAddTask} disabled={!date}>Add Task</Button>
+          <Button onClick={handleAddTask} disabled={!date || !description.trim()} className="w-full">
+            Add Task
+          </Button>
         </div>
         <TaskList tasks={tasks} />
       </div>
