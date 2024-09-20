@@ -23,6 +23,7 @@ export async function initializeGoogleAuth() {
     });
   } catch (error) {
     console.error('Error initializing Google Auth:', error);
+    throw new Error('Failed to initialize Google Auth. Please check your API key and client ID.');
   }
 }
 
@@ -30,11 +31,22 @@ export async function initializeGoogleAuth() {
 export async function signIn() {
   try {
     const googleAuth = gapi.auth2.getAuthInstance();
-    await googleAuth.signIn();
-    return true;
+    const user = await googleAuth.signIn({
+      prompt: 'select_account'
+    });
+    if (user) {
+      return true;
+    }
+    return false;
   } catch (error) {
     console.error('Error signing in:', error);
-    return false;
+    if (error.error === "popup_closed_by_user") {
+      throw new Error('Sign-in was cancelled. Please try again.');
+    } else if (error.error === "access_denied") {
+      throw new Error('Access was denied. Please check your Google account permissions.');
+    } else {
+      throw new Error('An error occurred during sign-in. Please try again later.');
+    }
   }
 }
 
@@ -68,6 +80,6 @@ export async function createGoogleCalendarEvent(summary, date) {
     return response.result;
   } catch (error) {
     console.error('Error creating Google Calendar event:', error);
-    throw error;
+    throw new Error('Failed to create Google Calendar event. Please try again.');
   }
 }

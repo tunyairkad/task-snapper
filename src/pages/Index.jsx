@@ -9,24 +9,44 @@ import { cn } from "@/lib/utils";
 import TaskList from '../components/TaskList';
 import { addTask } from '../utils/taskUtils';
 import { initializeGoogleAuth, signIn, isSignedIn, createGoogleCalendarEvent } from '../utils/googleCalendar';
+import { toast } from 'sonner';
 
 const Index = () => {
   const [tasks, setTasks] = useState([]);
   const [date, setDate] = useState();
   const [description, setDescription] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const initGoogle = async () => {
-      await initializeGoogleAuth();
-      setIsLoggedIn(isSignedIn());
+      try {
+        await initializeGoogleAuth();
+        setIsLoggedIn(isSignedIn());
+      } catch (error) {
+        console.error('Error initializing Google Auth:', error);
+        toast.error('Failed to initialize Google Auth. Please try again later.');
+      }
     };
     initGoogle();
   }, []);
 
   const handleGoogleLogin = async () => {
-    const signedIn = await signIn();
-    setIsLoggedIn(signedIn);
+    setIsLoading(true);
+    try {
+      const signedIn = await signIn();
+      setIsLoggedIn(signedIn);
+      if (signedIn) {
+        toast.success('Successfully signed in with Google!');
+      } else {
+        toast.error('Failed to sign in with Google. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error signing in:', error);
+      toast.error('An error occurred while signing in. Please check the console for details.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleAddTask = async () => {
@@ -38,9 +58,10 @@ const Index = () => {
         setTasks([...tasks, newTask]);
         setDate(undefined);
         setDescription('');
+        toast.success('Task added successfully to Google Calendar!');
       } catch (error) {
         console.error('Error adding task to Google Calendar:', error);
-        // Handle error (e.g., show error message to user)
+        toast.error('Failed to add task to Google Calendar. Please try again.');
       }
     }
   };
@@ -51,7 +72,9 @@ const Index = () => {
         <h1 className="text-2xl font-bold mb-4">Quick Task Creator</h1>
         {!isLoggedIn ? (
           <div className="mb-4">
-            <Button onClick={handleGoogleLogin}>Sign in with Google</Button>
+            <Button onClick={handleGoogleLogin} disabled={isLoading}>
+              {isLoading ? 'Signing in...' : 'Sign in with Google'}
+            </Button>
           </div>
         ) : (
           <div className="space-y-4 mb-6">
